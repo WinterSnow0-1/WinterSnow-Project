@@ -3,9 +3,13 @@ using UnityEngine.Rendering;
 public class CustomRenderPipeline : RenderPipeline
 {
     readonly CameraRenderer renderer = new CameraRenderer();
-    public CustomRenderPipeline()
+    bool useDynamicBatching, useGPUInstancing;
+    public CustomRenderPipeline(bool useDynamicBatching,bool useGPUInstancing, bool useSRPBatcher)
     {
-        GraphicsSettings.useScriptableRenderPipelineBatching = true;
+        GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
+        GraphicsSettings.lightsUseLinearIntensity = true;
+        this.useDynamicBatching = useDynamicBatching;
+        this.useGPUInstancing = useGPUInstancing;
     }
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
@@ -19,7 +23,7 @@ public class CustomRenderPipeline : RenderPipeline
             /// 1.只用 ScriptableRenderContext + CommandBuffer 渲染
             /// 2.Camera 只是“数据”（视角、投影矩阵等），
             /// 3.不再用 camera.Render() 这种旧式“一键帮你画完”的 API。
-            renderer.Render(context, camera);
+            renderer.Render(context, camera,useDynamicBatching, useGPUInstancing);
         }
     }
 

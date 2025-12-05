@@ -1,9 +1,13 @@
-Shader "URP/falushan"
+Shader "URP/CustomLit"
 {
     Properties //着色器的输入 
     {
         _BaseMap ("Texture", 2D) = "white" {}
         _BaseCol ("颜色", color) = (1,1,1,1)
+        
+        _Metallic("Metallic",Range(0,1)) = 0
+        _Smoothness("Smoothness",Range(0,1)) = 0.5
+        
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend",float) =1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend",float) =1
         [Enum(Off,0,On,1)] _ZWrite("Z Write",float) = 1
@@ -23,7 +27,9 @@ Shader "URP/falushan"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl" 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl" 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
-
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+        
         #pragma multi_compile_instancing
         #pragma shader_feature CLIP_ON
 
@@ -40,6 +46,8 @@ Shader "URP/falushan"
         UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
         UNITY_DEFINE_INSTANCED_PROP(float4,_BaseCol)
         UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)
+        UNITY_DEFINE_INSTANCED_PROP(float,_Metallic)
+        UNITY_DEFINE_INSTANCED_PROP(float,_Smoothness)
         UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
         float _clipRange;
 
@@ -74,46 +82,17 @@ Shader "URP/falushan"
 
         Pass
         {
-            
-            Blend [_SrcBlend][_DstBlend]
-            ZWrite [_ZWrite]
+            Tags
+            {
+                "LightMode" = "CustomLit"
+            }
             HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            
-
-            v2f vert (a2v v)
-            {
-                v2f o;
-                //instance branch
-                UNITY_SETUP_INSTANCE_ID(v);
-                UNITY_TRANSFER_INSTANCE_ID(v,o);
-                o.positionCS = TransformObjectToHClip(v.vertex);
-                float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);
-                o.uv = baseST.xy * v.uv + baseST.zw;
-                o.vertexColor = v.vertexColor;
-                o.normal = TransformObjectToWorldNormal(v.normal);
-                o.tangent = TransformObjectToWorldDir(v.tangent);
-                o.bitangent = cross(o.normal,o.tangent);
-                o.posWS = mul(unity_ObjectToWorld, v.vertex);
-                o.screenUV =  ComputeScreenPos(o.positionCS);
-                return o;
-            }
-
-            half4 frag (v2f i) : SV_Target  /* 注意在HLSL中，fixed4类型变成了half4类型*/
-            {
-                UNITY_SETUP_INSTANCE_ID(i);
-                float2 screenUV = i.screenUV.xy / i.screenUV.w;
-                //half4 col = _BaseCol;
-                float4 base = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,i.uv);
-                half4 col = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseCol) * base;
-                #if CLIP_ON
-                    clip(col.a - _clipRange);
-                #endif
-                
-                return half4(col);
-            }
+            #pragma target 3.5
+            #include "CustomLitPass.hlsl"
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragment
             ENDHLSL
         }
+        
     }
 }

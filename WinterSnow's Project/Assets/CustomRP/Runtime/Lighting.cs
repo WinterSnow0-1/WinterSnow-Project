@@ -1,0 +1,68 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.Collections;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+public class Lighting
+{
+    const string bufferName = "Lighting";
+
+    CommandBuffer buffer = new CommandBuffer()
+    {
+        name = bufferName
+    };
+    
+    const int maxDirLightCount = 4;
+
+    static int dirLightCountId = Shader.PropertyToID("_DirectionalLightCount");
+    static int dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors");
+    static int dirLightDrectionsId = Shader.PropertyToID("_DirectionalLightDirections");
+    
+    CullingResults cullingResults;
+    
+    static Vector4[] dirLightColors = new Vector4[maxDirLightCount];
+    static Vector4[] dirLightDirections = new Vector4[maxDirLightCount];
+
+    public void Setup(ScriptableRenderContext context,CullingResults cullingResults)
+    {
+        this.cullingResults = cullingResults;
+        buffer.BeginSample(bufferName);
+        SetupLights();
+        buffer.EndSample(bufferName);
+        context.ExecuteCommandBuffer(buffer);
+        buffer.Clear();
+    }
+
+    public void SetupDirectionalLitght(int index,ref VisibleLight visibleLight)
+    {
+        dirLightColors[index] = visibleLight.finalColor;
+        dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+    }
+
+    void SetupLights()
+    {
+        /// NativeArray https://docs.unity3d.com/6000.2/Documentation/ScriptReference/Unity.Collections.NativeArray_1.html 不懂
+        /// 可以看https://www.cnblogs.com/KillerAery/p/10586659.html 
+        NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
+
+        int dirLightCount = 0;
+        for (int i = 0; i < visibleLights.Length; i++)
+        {
+            VisibleLight visibleLight = visibleLights[i];
+            if (visibleLight.lightType == LightType.Directional)
+            {
+                //这里传递引用，因为visibleLight结构很大
+                SetupDirectionalLitght(dirLightCount++,ref visibleLight);
+                if (dirLightCount >= maxDirLightCount)
+                    break;
+            }
+        }
+        
+        buffer.SetGlobalInt(dirLightCountId,dirLightCount);
+        buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
+        buffer.SetGlobalVectorArray(dirLightDrectionsId,dirLightDirections);
+
+    }
+
+}

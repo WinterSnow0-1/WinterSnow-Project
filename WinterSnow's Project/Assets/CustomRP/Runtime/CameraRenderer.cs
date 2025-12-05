@@ -15,8 +15,11 @@ public partial class CameraRenderer
     CullingResults cullingResults;
 
     static readonly ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
+    static readonly ShaderTagId litShaderTagId = new ShaderTagId("CustomLit");
 
-    public void Render(ScriptableRenderContext context, Camera camera)
+    Lighting lighting = new Lighting();
+    
+    public void Render(ScriptableRenderContext context, Camera camera,bool useDynamicBatching,bool useGPUInstancing)
     {
         this.context = context;
         this.camera = camera;
@@ -30,7 +33,8 @@ public partial class CameraRenderer
             return;
 
         setup();
-        DrawVisbleGeometry();
+        lighting.Setup(context,cullingResults);
+        DrawVisbleGeometry(useDynamicBatching, useGPUInstancing);
 
         /// 对于SRP中不支持的着色器，我们会单独处理。
         /// 不支持主要包括
@@ -58,14 +62,19 @@ public partial class CameraRenderer
     ///     3. FilteringSettings: 我们可以自定义渲染区间，进行特殊效果渲染。也可以控制LayerMask来单独绘制某个layer的特殊pass
     ///     <![CDATA[API:https://docs.unity3d.com/ScriptReference/Rendering.FilteringSettings.html]]>
     /// </summary>
-    void DrawVisbleGeometry()
+    void DrawVisbleGeometry(bool useDynamicBatching,bool useGPUInstancing)
     {
         var sortingSettings = new SortingSettings(camera)
         {
             criteria = SortingCriteria.CommonOpaque
         };
 
-        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
+        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
+        {
+            enableInstancing = useGPUInstancing,
+            enableDynamicBatching = useDynamicBatching
+        };
+        drawingSettings.SetShaderPassName(1,litShaderTagId);
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
 
