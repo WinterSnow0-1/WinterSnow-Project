@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-public class CameraRenderer
+public partial class CameraRenderer
 {
     ScriptableRenderContext context;
 
@@ -20,13 +20,18 @@ public class CameraRenderer
     {
         this.context = context;
         this.camera = camera;
+        
+        PrepareBuffer();
+        
+        //此方法增添了几何体，因此需要在Cull前增加，来进行剔除处理
+        PrepareForSceneWindow();
 
         if (!Cull())
             return;
 
         setup();
         DrawVisbleGeometry();
-        
+
         /// 对于SRP中不支持的着色器，我们会单独处理。
         /// 不支持主要包括
         /// 1. shaderTagId 不在 SRP处理中
@@ -35,20 +40,23 @@ public class CameraRenderer
         ///     b. 依赖 Built in 的 内置宏（灯光/阴影）UNITY_LIGHT_ATTENUATION （URP 作为一个具体的 SRP，实现了一层“兼容桥”，让一部分旧宏/旧习惯还能继续活下去）
         ///     c. 依赖Built - in 的标准， #pragma surface surf Standard fullforwardshadows
         ///     e. 使用GrabPass
-        // DrawUnsupportedShaders
+        DrawUnsupportedShaders();
         
+        DrawGizmos();
+
         Submit();
     }
 
 
     /// <summary>
-    /// 具体的渲染显示
-    /// 简单说下具体的关键点，之后转录到笔记中
-    /// 1. CullingResults 决定有哪些物体可以画，DrawingSettings决定怎么画，FilteringSettings决定画谁
-    /// 2. DrawingSettings 关键点： sortingsettings 设置渲染顺序， ShaderTagId设置渲染物体的材质， 当物体材质不在List[ShaderTagId]中时，使用fallbackMaterial作为失败时调用
-    /// <![CDATA[API: https://docs.unity3d.com/6000.2/Documentation/ScriptReference/Rendering.DrawingSettings.html]]>
-    /// 3. FilteringSettings: 我们可以自定义渲染区间，进行特殊效果渲染。也可以控制LayerMask来单独绘制某个layer的特殊pass
-    /// ![CDATA[API:https://docs.unity3d.com/ScriptReference/Rendering.FilteringSettings.html]]>
+    ///     具体的渲染显示
+    ///     简单说下具体的关键点，之后转录到笔记中
+    ///     1. CullingResults 决定有哪些物体可以画，DrawingSettings决定怎么画，FilteringSettings决定画谁
+    ///     2. DrawingSettings 关键点： sortingsettings 设置渲染顺序， ShaderTagId设置渲染物体的材质，
+    ///     当物体材质不在List[ShaderTagId]中时，使用fallbackMaterial作为失败时调用
+    ///     <![CDATA[API: https://docs.unity3d.com/6000.2/Documentation/ScriptReference/Rendering.DrawingSettings.html]]>
+    ///     3. FilteringSettings: 我们可以自定义渲染区间，进行特殊效果渲染。也可以控制LayerMask来单独绘制某个layer的特殊pass
+    ///     <![CDATA[API:https://docs.unity3d.com/ScriptReference/Rendering.FilteringSettings.html]]>
     /// </summary>
     void DrawVisbleGeometry()
     {
@@ -71,17 +79,22 @@ public class CameraRenderer
 
     }
 
+    
+
     void setup()
     {
-        buffer.BeginSample(bufferName);
-        buffer.ClearRenderTarget(true, true, Color.clear);
+        buffer.BeginSample(SampleName);
+        context.SetupCameraProperties(camera);
+        CameraClearFlags flags = camera.clearFlags;
+        buffer.ClearRenderTarget(flags<= CameraClearFlags.Depth, flags == CameraClearFlags.Color,
+            flags == CameraClearFlags.Color? camera.backgroundColor.linear : Color.black);
         ExecuteBuffer();
         context.SetupCameraProperties(camera);
     }
 
     void Submit()
     {
-        buffer.EndSample(bufferName);
+        buffer.EndSample(SampleName);
         ExecuteBuffer();
         context.Submit();
     }

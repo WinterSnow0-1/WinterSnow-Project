@@ -1,17 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-
 public class CustomRenderPipeline : RenderPipeline
 {
-    CameraRenderer renderer = new CameraRenderer();
+    readonly CameraRenderer renderer = new CameraRenderer();
+    public CustomRenderPipeline()
+    {
+        GraphicsSettings.useScriptableRenderPipelineBatching = true;
+    }
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
-        foreach (var camera in cameras)
+        foreach (Camera camera in cameras)
         {
             //context.SetupCameraProperties(camera);
-            Debug.Log("CustomRenderPipeline.Render, cameras: " + cameras.Length);
             /// 注意，避免直接调用camera.Render();
             /// unity官方希望所有渲染都只在Render 入口走一次。
             /// 因此在SPR管线中，其回调当前RenderPipeline的render，形成死循环。该代码写入C++底层
