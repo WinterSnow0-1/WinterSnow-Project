@@ -4,6 +4,7 @@
 #include "../ShaderLibrary/SurfaceData.hlsl"
 #include "../ShaderLibrary/Light.hlsl"
 #include "../ShaderLibrary/BRDF.hlsl"
+#include "../ShaderLibrary/Shadows.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
 
 

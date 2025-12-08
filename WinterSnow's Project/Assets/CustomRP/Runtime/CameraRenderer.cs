@@ -19,7 +19,7 @@ public partial class CameraRenderer
 
     Lighting lighting = new Lighting();
     
-    public void Render(ScriptableRenderContext context, Camera camera,bool useDynamicBatching,bool useGPUInstancing)
+    public void Render(ScriptableRenderContext context, Camera camera,bool useDynamicBatching,bool useGPUInstancing, ShadowSettings shadowSettings)
     {
         this.context = context;
         this.camera = camera;
@@ -29,11 +29,14 @@ public partial class CameraRenderer
         //此方法增添了几何体，因此需要在Cull前增加，来进行剔除处理
         PrepareForSceneWindow();
 
-        if (!Cull())
+        if (!Cull(shadowSettings.maxDistance))
             return;
 
+        buffer.BeginSample(SampleName);
+        ExecuteBuffer();
+        lighting.Setup(context,cullingResults,shadowSettings);
+        buffer.EndSample(SampleName);
         setup();
-        lighting.Setup(context,cullingResults);
         DrawVisbleGeometry(useDynamicBatching, useGPUInstancing);
 
         /// 对于SRP中不支持的着色器，我们会单独处理。
@@ -48,6 +51,7 @@ public partial class CameraRenderer
         
         DrawGizmos();
 
+        lighting.Cleanup();
         Submit();
     }
 
@@ -123,11 +127,12 @@ public partial class CameraRenderer
     /// 2. 在内置渲染管线下（CG），unity只会返回一个副本，实际运行时仍是使用内置的数据
     /// 3. 在SRP中，我们可以获取对应数据，进行相关修改。
     /// 4. ScriptableCullingParameters是剔除规则，cullingResults是剔除后的结果
-    bool Cull()
+    bool Cull(float shadowMaxDistance)
     {
         ScriptableCullingParameters cullingParameters;
         if (camera.TryGetCullingParameters(out cullingParameters))
         {
+            cullingParameters.shadowDistance = Mathf.Min(shadowMaxDistance,camera.farClipPlane);
             cullingResults = context.Cull(ref cullingParameters);
             return true;
         }

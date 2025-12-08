@@ -4,9 +4,12 @@ using UnityEngine.Rendering;
 public class CustomRenderPipelineAsset : RenderPipelineAsset
 {
     [SerializeField]
+    ShadowSettings shadows = default;
+    
+    [SerializeField]
     bool useDynamicBatching = true, useGPUInstancing = true, useSRPBatching = true;
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline(useDynamicBatching,useGPUInstancing,useSRPBatching);
+        return new CustomRenderPipeline(useDynamicBatching,useGPUInstancing,useSRPBatching, shadows);
     }
 }

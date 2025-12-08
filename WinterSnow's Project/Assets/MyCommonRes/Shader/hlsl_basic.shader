@@ -108,12 +108,30 @@ Shader "URP/falushan"
                 float4 base = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,i.uv);
                 half4 col = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseCol) * base;
                 #if CLIP_ON
-                    clip(col.a - _clipRange);
+                    clip(base.r - _clipRange);
                 #endif
                 
                 return half4(col);
             }
             ENDHLSL
         }
+
+        Pass {
+			Tags {
+				"LightMode" = "ShadowCaster"
+			}
+
+			ColorMask 0
+
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma shader_feature _CLIPPING
+			#pragma multi_compile_instancing
+			#pragma vertex ShadowCasterPassVertex
+			#pragma fragment ShadowCasterPassFragment
+			#include "ShadowCasterPass.hlsl"
+			ENDHLSL
+		}
     }
+    CustomEditor "CustomShaderGUI"
 }

@@ -3,6 +3,7 @@
 
 struct CustomSurfaceData
 {
+	float3 position;
     float3 normal;
     float3 color;
     float alpha;
@@ -20,6 +21,7 @@ CustomSurfaceData GenSurfaceData(v2f input,float4 col,float smoothness,float met
     surface.vDir = normalize(_WorldSpaceCameraPos - input.posWS);
     surface.smoothness = smoothness;
     surface.metallic = metallic;
+    surface.position = input.posWS;
     return surface;
 }
 
