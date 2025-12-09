@@ -4,10 +4,10 @@ Shader "URP/CustomLit"
     {
         _BaseMap ("Texture", 2D) = "white" {}
         _BaseCol ("颜色", color) = (1,1,1,1)
-        
+
         _Metallic("Metallic",Range(0,1)) = 0
         _Smoothness("Smoothness",Range(0,1)) = 0.5
-        
+
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend",float) =1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend",float) =1
         [Enum(Off,0,On,1)] _ZWrite("Z Write",float) = 1
@@ -16,22 +16,26 @@ Shader "URP/CustomLit"
     }
     SubShader
     {
-        Tags {
+        Tags
+        {
             "RenderType"="Opaque"
             "RenderPipeLine"="UniversalRenderPipeline" //用于指明使用URP来渲染
         }
 
-        
-        HLSLINCLUDE 
+
+        HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl" 
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl" 
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-        
+
         #pragma multi_compile_instancing
         #pragma shader_feature CLIP_ON
+        #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
+        #pragma shader_feature _CLIPPING
+        #pragma multi_compile_instancing
 
         // SRP Batching
         /*CBUFFER_START(UnityPerMaterial) //声明变量
@@ -44,10 +48,10 @@ Shader "URP/CustomLit"
         /// 因此获取时，不能单纯去调用 普通的uniform，而是必须通过 UNITY_ACCESS_INSTANCED_PROP（UnityPerMaterial，参数名）的方式进行获取
         /// 因此 当UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)时， o.uv = TRANSFORM_TEX(v.uv, _BaseMap); 会调用普通的_BaseMap_ST，导致报错。
         UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-        UNITY_DEFINE_INSTANCED_PROP(float4,_BaseCol)
-        UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)
-        UNITY_DEFINE_INSTANCED_PROP(float,_Metallic)
-        UNITY_DEFINE_INSTANCED_PROP(float,_Smoothness)
+            UNITY_DEFINE_INSTANCED_PROP(float4, _BaseCol)
+            UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
+            UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
+            UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
         UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
         float _clipRange;
 
@@ -75,9 +79,8 @@ Shader "URP/CustomLit"
             float4 posWS : TEXCOORD5;
             half4 vertexColor: COLOR;
             UNITY_VERTEX_INPUT_INSTANCE_ID
-            
-        }; 
 
+        };
         ENDHLSL
 
         Pass
@@ -94,23 +97,23 @@ Shader "URP/CustomLit"
             ENDHLSL
         }
 
-        Pass {
-			Tags {
-				"LightMode" = "ShadowCaster"
-			}
+        Pass
+        {
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
 
-			ColorMask 0
+            ColorMask 0
 
-			HLSLPROGRAM
-			#pragma target 3.5
-			#pragma shader_feature _CLIPPING
-			#pragma multi_compile_instancing
-			#pragma vertex ShadowCasterPassVertex
-			#pragma fragment ShadowCasterPassFragment
-			#include "ShadowCasterPass.hlsl"
-			ENDHLSL
-		}
-        
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex ShadowCasterPassVertex
+            #pragma fragment ShadowCasterPassFragment
+            #include "ShadowCasterPass.hlsl"
+            ENDHLSL
+        }
+
     }
     CustomEditor "CustomShaderGUI"
 }

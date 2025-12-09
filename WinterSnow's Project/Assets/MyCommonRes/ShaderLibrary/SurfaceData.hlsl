@@ -3,16 +3,18 @@
 
 struct CustomSurfaceData
 {
-	float3 position;
+    float3 position;
     float3 normal;
     float3 color;
+    float3 vDir;
+    float depth;
     float alpha;
     float smoothness;
     float metallic;
-    float3 vDir;
+    float dither;
 };
 
-CustomSurfaceData GenSurfaceData(v2f input,float4 col,float smoothness,float metallic)
+CustomSurfaceData GenSurfaceData(v2f input, float4 col, float smoothness, float metallic)
 {
     CustomSurfaceData surface;
     surface.normal = input.normal;
@@ -22,6 +24,8 @@ CustomSurfaceData GenSurfaceData(v2f input,float4 col,float smoothness,float met
     surface.smoothness = smoothness;
     surface.metallic = metallic;
     surface.position = input.posWS;
+    surface.depth = -TransformWorldToView(input.posWS).z;
+    surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
     return surface;
 }
 

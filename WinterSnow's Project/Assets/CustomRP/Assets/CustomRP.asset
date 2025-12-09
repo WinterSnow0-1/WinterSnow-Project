@@ -15,7 +15,11 @@ MonoBehaviour:
   shadows:
     maxDistance: 10
     directional:
-      atlasSize: 1024
+      atlasSize: 2048
+      cascadeCount: 4
+      cascadeRatio1: 0.1
+      cascadeRatio2: 0.25
+      cascadeRatio3: 5
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatching: 1
