@@ -12,11 +12,6 @@ struct BRDFData
     float oneMinusReflectivity;
 };
 
-float Square(float v)
-{
-    return v * v;
-}
-
 float OneMinusReflectivity(float metallic)
 {
     float range = 1 - MIN_REFLECTIVITY;
@@ -39,11 +34,13 @@ float3 CustomDirectBDRF(CustomSurfaceData surface,BRDFData brdf,CustomLight ligh
     return SpecularStrength(surface,brdf,light) * brdf.specular + brdf.diffuse;
 }
 
-BRDFData GetBRDF(CustomSurfaceData surfaceData)
+BRDFData GetBRDF(CustomSurfaceData surfaceData, bool applyAlphaToDiffuse = false)
 {
     BRDFData brdf;
     brdf.oneMinusReflectivity =OneMinusReflectivity(surfaceData.metallic);
     brdf.diffuse = surfaceData.color * brdf.oneMinusReflectivity;
+    if (applyAlphaToDiffuse)
+	    brdf.diffuse *= surfaceData.alpha;
     brdf.specular = lerp(MIN_REFLECTIVITY,surfaceData.color,surfaceData.metallic);
     brdf.preRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.smoothness);
     brdf.roughness = PerceptualRoughnessToRoughness(brdf.preRoughness);

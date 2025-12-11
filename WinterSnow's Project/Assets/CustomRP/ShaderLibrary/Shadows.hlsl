@@ -1,7 +1,6 @@
 #ifndef CUSTOM_SHADOWS_INCLUDED
 #define CUSTOM_SHADOWS_INCLUDED
 
-
 ///我们可以手动进入观察函数 SampleShadow_ComputeSamples_Tent_ 函数，DIRECTIONAL_FILTER_SAMPLES决定采样次数，DIRECTIONAL_FILTER_SETUP决定采样函数
 ///同时注意提升PCF采样时，会增加皮特潘现象，为什么？
 ///
@@ -110,11 +109,8 @@ float FilterDirectionalShadow(float3 positionSTS)
     float4 size = _ShadowAtlasSize.yyxx;
     DIRECTIONAL_FILTER_SETUP(size, positionSTS.xy, weights, positions);
     float shadow = 0;
-    for (int i = 0; i < DIRECTIONAL_FILTER_SAMPLES; i++) {
-        shadow += weights[i] * SampleDirectionalShadowAtlas(
-            float3(positions[i].xy, positionSTS.z)
-        );
-    }
+    for (int i = 0; i < DIRECTIONAL_FILTER_SAMPLES; i++)
+        shadow += weights[i] * SampleDirectionalShadowAtlas(float3(positions[i].xy, positionSTS.z));
     return shadow;
     #else
     return SampleDirectionalShadowAtlas(positionSTS);

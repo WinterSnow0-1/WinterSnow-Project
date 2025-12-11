@@ -1,7 +1,7 @@
 #ifndef CUSTOM_SHADOW_CASTER_PASS_INCLUDED
 #define CUSTOM_SHADOW_CASTER_PASS_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "../ShaderLibrary/Common.hlsl"
 
 struct Attributes
 {
@@ -26,6 +26,7 @@ Varyings ShadowCasterPassVertex(Attributes input)
     output.positionCS = TransformWorldToHClip(positionWS);
 
     float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
+    //float4 baseST =  _BaseMap_ST;
     output.baseUV = input.baseUV * baseST.xy + baseST.zw;
 
     /// 当物体离投影相加过近，甚至超过近平面时，需要进行下面判断
@@ -42,11 +43,9 @@ Varyings ShadowCasterPassVertex(Attributes input)
 void ShadowCasterPassFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
-    float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
-    float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseCol);
-    float4 base = baseMap * baseColor;
+    float4 base =GetBase(input.baseUV);
     #if defined(_CLIPPING)
-    clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
+    clip(base.a - GetCutoff(input.baseUV));
     #endif
 }
 

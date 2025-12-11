@@ -1,9 +1,6 @@
 #ifndef CUSTOM_LIGHT_INCLUDED
 #define CUSTOM_LIGHT_INCLUDED
 
-#ifndef CUSTOM_SHADOWS_INCLUDED
-#include "Shadows.hlsl"
-#endif
 
 #define MAX_DIRECTIONAL_LIGHT_COUNT 4
 

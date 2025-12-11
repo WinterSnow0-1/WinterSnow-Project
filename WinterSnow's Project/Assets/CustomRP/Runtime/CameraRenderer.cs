@@ -65,6 +65,7 @@ public partial class CameraRenderer
     ///     <![CDATA[API: https://docs.unity3d.com/6000.2/Documentation/ScriptReference/Rendering.DrawingSettings.html]]>
     ///     3. FilteringSettings: 我们可以自定义渲染区间，进行特殊效果渲染。也可以控制LayerMask来单独绘制某个layer的特殊pass
     ///     <![CDATA[API:https://docs.unity3d.com/ScriptReference/Rendering.FilteringSettings.html]]>
+    ///     4. PerObjectData 同时unity在setup阶段额外为每个物体准备何种数据，此时开启LIGHTMAP_ON关键字
     /// </summary>
     void DrawVisbleGeometry(bool useDynamicBatching,bool useGPUInstancing)
     {
@@ -76,7 +77,8 @@ public partial class CameraRenderer
         var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
         {
             enableInstancing = useGPUInstancing,
-            enableDynamicBatching = useDynamicBatching
+            enableDynamicBatching = useDynamicBatching,
+            perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe| PerObjectData.LightProbeProxyVolume
         };
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);

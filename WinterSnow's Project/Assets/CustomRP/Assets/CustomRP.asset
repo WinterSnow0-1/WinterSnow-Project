@@ -13,13 +13,17 @@ MonoBehaviour:
   m_Name: CustomRP
   m_EditorClassIdentifier: 
   shadows:
-    maxDistance: 10
+    maxDistance: 57.7
+    distanceFade: 0.695
     directional:
-      atlasSize: 2048
+      atlasSize: 8192
+      filterMode: 3
       cascadeCount: 4
-      cascadeRatio1: 0.1
-      cascadeRatio2: 0.25
-      cascadeRatio3: 5
+      cascadeRatio1: 0.036
+      cascadeRatio2: 0.203
+      cascadeRatio3: 0.536
+      cascadeFade: 0.651
+      cascadeBlend: 2
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatching: 1
