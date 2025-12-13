@@ -35,6 +35,11 @@ public class Shadows
         "_CASCADE_BLEND_SOFT", "_CASCADE_BLEND_DITHER"
     };
 
+    static string[] shadowMaskKeywords =
+    {
+        "_SHADOW_MASK_DISTANCE"
+    };
+
     static readonly Vector4[] cascadeCullingSpheres = new Vector4[maxCascades];
     static readonly Vector4[] cascadeData = new Vector4[maxCascades];
 
@@ -57,10 +62,16 @@ public class Shadows
         /// 函数所做：1. 找到当前灯光所照到的物体上的，cast shadow 不等于 off 的
         ///         2. 挑出可能把阴影投影到当前摄像机可见区域的物体
         ///         3. 求出这些物体的 世界空间下的  轴对齐包围盒  如果没有，则返回false
-        if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
-            && light.shadows != LightShadows.None && light.shadowStrength > 0f
-            && cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds outBounds))
+        if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount && light.shadows != LightShadows.None && light.shadowStrength > 0f)
         {
+            LightBakingOutput lightBaking = light.bakingOutput;
+            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask) 
+                useShadowMask = true;
+            
+            if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b)) 
+                return new Vector3(-light.shadowStrength, 0f, 0f);
+            
+            
             shadowedDirectionalLights[ShadowedDirectionalLightCount] = new ShadowedDirectionalLight
             {
                 visibleLightIndex = visibleLightIndex,
@@ -72,12 +83,15 @@ public class Shadows
         return Vector3.zero;
     }
 
+    bool useShadowMask;
+
     public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings)
     {
         ShadowedDirectionalLightCount = 0;
         this.cullingResults = cullingResults;
         this.shadowSettings = shadowSettings;
         this.context = context;
+        useShadowMask = false;
     }
 
     public void Render()
@@ -90,6 +104,11 @@ public class Shadows
         {
             buffer.GetTemporaryRT(dirShadowAtlasId, 1, 1, 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
         }
+
+        buffer.BeginSample(bufferName);
+        SetKeywords(shadowMaskKeywords, useShadowMask ? 0 : -1);
+        buffer.EndSample(bufferName);
+        ExecuteBuffer();
 
     }
 
@@ -116,12 +135,13 @@ public class Shadows
             RenderDirectionalShadows(i, split, tileSize);
         float f = 1 - shadowSettings.directional.cascadeFade;
         buffer.SetGlobalVector(shadowDistanceFadeId, new Vector4(1f / shadowSettings.maxDistance, 1f / shadowSettings.distanceFade, 1 / (1 - f * f)));
-        SetKeywords(
-            /// -1 是因为unity中并没有提供 PCF 2x2 的方式，而是从3x3开始，因此需要我们手动是实现
+        
+        SetKeywords( /// -1 是因为unity中并没有提供 PCF 2x2 的方式，而是从3x3开始，因此需要我们手动是实现
             directionalFilterKeywords, (int)shadowSettings.directional.filterMode - 1);
-        SetKeywords(
-            /// -1 因为 hard不需要设置关键字
+        
+        SetKeywords( /// -1 因为 hard不需要设置关键字
             cascadeBlendKeywords, (int)shadowSettings.directional.cascadeBlend - 1);
+        
         buffer.SetGlobalVector(shadowAtlasSizeId, new Vector4(atlasSize, 1f / atlasSize));
         buffer.EndSample(bufferName);
         ExecuteBuffer();

@@ -10,6 +10,7 @@ float3 circulateLighting(CustomSurfaceData suraface, BRDFData brdf, CustomLight 
 float3 GetLighting(CustomSurfaceData surface, BRDFData brdf,GI gi)
 {
     CustomShadowData shadowData = GetShadowData(surface);
+    shadowData.shadowMask = gi.shadowMask;
     float3 color = gi.diffuse * brdf.diffuse;
     for (int i = 0; i < GetDirectionalLightCount(); i++)
     {
