@@ -37,6 +37,7 @@ public class Shadows
 
     static string[] shadowMaskKeywords =
     {
+        "_SHADOW_MASK_ALWAYS",
         "_SHADOW_MASK_DISTANCE"
     };
 
@@ -56,7 +57,7 @@ public class Shadows
 
     readonly ShadowedDirectionalLight[] shadowedDirectionalLights = new ShadowedDirectionalLight[maxShadowedDirectionalLightCount];
 
-    public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         /// GetShadowCasterBounds bool 如果光源影响了场景中至少一个阴影投射对象，则为 true。https://docs.unity.cn/cn/2019.4/ScriptReference/Rendering.CullingResults.GetShadowCasterBounds.html
         /// 函数所做：1. 找到当前灯光所照到的物体上的，cast shadow 不等于 off 的
@@ -64,12 +65,16 @@ public class Shadows
         ///         3. 求出这些物体的 世界空间下的  轴对齐包围盒  如果没有，则返回false
         if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount && light.shadows != LightShadows.None && light.shadowStrength > 0f)
         {
+            float maskChannel = -1;
             LightBakingOutput lightBaking = light.bakingOutput;
-            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask) 
+            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+            {
                 useShadowMask = true;
+                maskChannel = lightBaking.occlusionMaskChannel;
+            }
             
             if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b)) 
-                return new Vector3(-light.shadowStrength, 0f, 0f);
+                return new Vector4(-light.shadowStrength, 0f, 0f,maskChannel);
             
             
             shadowedDirectionalLights[ShadowedDirectionalLightCount] = new ShadowedDirectionalLight
@@ -78,9 +83,9 @@ public class Shadows
                 slopeScaleBias = light.shadowBias,
                 nearPlaneOffset = light.shadowNearPlane
             };
-            return new Vector3(light.shadowStrength, shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++, light.shadowNormalBias);
+            return new Vector4(light.shadowStrength, shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++, light.shadowNormalBias,maskChannel);
         }
-        return Vector3.zero;
+        return new Vector4(0,0,0,-1);
     }
 
     bool useShadowMask;
@@ -106,7 +111,7 @@ public class Shadows
         }
 
         buffer.BeginSample(bufferName);
-        SetKeywords(shadowMaskKeywords, useShadowMask ? 0 : -1);
+        SetKeywords(shadowMaskKeywords, useShadowMask ? QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask? 0 : 1 : -1);
         buffer.EndSample(bufferName);
         ExecuteBuffer();
 
@@ -120,8 +125,7 @@ public class Shadows
     void RenderDirectionalShadows()
     {
         int atlasSize = (int)shadowSettings.directional.atlasSize;
-        buffer.GetTemporaryRT(dirShadowAtlasId, atlasSize, atlasSize,
-            32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
+        buffer.GetTemporaryRT(dirShadowAtlasId, atlasSize, atlasSize, 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
         buffer.SetRenderTarget(dirShadowAtlasId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
         buffer.ClearRenderTarget(true, true, Color.clear);
 
