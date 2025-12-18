@@ -572,11 +572,14 @@ public class ImpostorBakerOdinWindowGPT : OdinEditorWindow
         mpb.SetFloat("_Cutoff", cutoff);
 
         // 两个都赋值，shader 用 _UseBaseMap 决定采样哪个
-        mpb.SetTexture("_BaseMap", texBase);
-        mpb.SetVector("_BaseMap_ST", stBase);
-
-        mpb.SetTexture("_MainTex", texBase);
-        mpb.SetVector("_MainTex_ST", stBase);
+        if (texBase != null)
+        {
+            mpb.SetTexture("_BaseMap", texBase);
+            mpb.SetVector("_BaseMap_ST", stBase);
+            mpb.SetTexture("_MainTex", texBase);
+            mpb.SetVector("_MainTex_ST", stBase);
+        }
+        
     }
 
     private void SaveAtlas(RenderTexture atlasRT, string assetPath, TextureFormat format, bool isEXR)
