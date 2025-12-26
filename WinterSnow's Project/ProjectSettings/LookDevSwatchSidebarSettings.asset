@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 53
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::LookDevSwatchSidebarSettings
+  colorChart: {fileID: 2800000, guid: dffef66376be4fa480fb02b19edbe903, type: 3}
+  environmentCubemap: {fileID: 8900000, guid: fac6fc6190ae7f449a78f580281c1ce8, type: 3}
+  background: {r: 1, g: 1, b: 1, a: 0}
+  keyLightIntensity: 3
+  lightYaw: -63
+  lightPitch: 11.8
+  thumbSize: 148
+  renderResolution: 512
+  swatches:
+  - material: {fileID: 2100000, guid: 63306899d0b49664b9548266edfb4790, type: 2}
+    label: Swatch
+    enabled: 1
