@@ -541,12 +541,12 @@ public class ImpostorBakerOdinWindow : OdinEditorWindow
     /// <summary>
     /// </summary>
     /// <param name="rPhi">圆形上的半径和方向</param>
-    /// <param name="dir">空间中摄像机的观察方向</param>
+    /// <param name="dir">物体局部空间中摄像机的观察方向</param>
     private void TransToPos(Vector2 rPhi, bool up, out Vector3 dir)
     {
-        float z = 1 - Mathf.Pow(rPhi.x, 2);
-        z = up ? z : -z;
-        dir = new Vector3(Mathf.Cos(rPhi.y) * rPhi.x, Mathf.Sin(rPhi.y) * rPhi.x, z);
+        float y = Mathf.Sqrt(1 - Mathf.Pow(rPhi.x, 2));
+        y = up ? y : -y;
+        dir = new Vector3(Mathf.Cos(rPhi.y) * rPhi.x, y, Mathf.Sin(rPhi.y) * rPhi.x);
     }
     
     /// <summary>
@@ -566,7 +566,7 @@ public class ImpostorBakerOdinWindow : OdinEditorWindow
         }
 
         Bounds bounds = CalculateBounds(renderers);
-        Vector3 center = bounds.center;
+        Vector3 center = renderers[0].localBounds.center;
         float radius = bounds.extents.magnitude;
 
         int atlasW = ySteps * tileSize;
@@ -596,7 +596,7 @@ public class ImpostorBakerOdinWindow : OdinEditorWindow
             ClearRT(_atlasColor, new Color(0, 0, 0, 0));
             ClearRT(_atlasNormal, new Color(0.5f, 0.5f, 1f, 1f)); // 默认法线指向 +Z
             ClearRT(_atlasDepth, new Color(1, 1, 1, 1));           // 默认最远
-
+            Vector3 centerWS = target.transform.TransformPoint(center);
             // 逐视角烘焙，等距拍摄
             // 缺点： 1.极点分布过密，分辨率运用率不高
             if (!useOctahedralMap)
@@ -613,7 +613,7 @@ public class ImpostorBakerOdinWindow : OdinEditorWindow
                         Quaternion rot = Quaternion.Euler(pitchDeg, yawDeg, 0f);
                         Vector3 forward = rot * Vector3.forward;
 
-                        _cam.transform.position = center - forward * (radius * distanceMul);
+                        _cam.transform.position = target.transform.TransformPoint(center - forward * (radius * distanceMul));
                         _cam.transform.LookAt(center, Vector3.up);
 
                         int dstX = y * tileSize;
@@ -649,24 +649,25 @@ public class ImpostorBakerOdinWindow : OdinEditorWindow
             }
             else
             {
-                for (int py = 0; py < xSteps; py++)
+                for (int x = 0; x < xSteps; x++)
                 {
                     for (int y = 0; y < ySteps; y++)
                     {
                         Vector2 rPhi = Vector2.zero;
-                        Vector2 uv = new Vector2((float)py / xSteps, (float)y / ySteps);
+                        Vector2 uv = new Vector2((float)x / xSteps, (float)y / ySteps);
                         bool up;
                         TransToDiskQiu(uv,out rPhi,out up);
                         Vector3 dir;
                         TransToPos(rPhi, up, out dir);
                         //Debug.Log("rPhi:"+rPhi+",dir:"+dir);
-                        _cam.transform.position = center - dir * (radius * distanceMul);
-                        _cam.transform.LookAt(center, Vector3.up);
+                        _cam.transform.position = target.transform.TransformPoint(center - dir * (radius * distanceMul));
+                        _cam.transform.LookAt(centerWS, Vector3.up);
+                        Debug.Log("view dir:" + dir + "UV:" + uv);
                         
                         //摄像机设置完成后，其余操作和上面一致。
-                        
-                        int dstX = y * tileSize;
-                        int dstY = (xSteps - 1 - py) * tileSize;
+                        //逆向是因为，
+                        int dstX = x * tileSize;
+                        int dstY = y * tileSize;
                         
                         // 1) Color：直接相机渲染（保留原材质的 cutout/透明逻辑）
                         if (bakeColor)

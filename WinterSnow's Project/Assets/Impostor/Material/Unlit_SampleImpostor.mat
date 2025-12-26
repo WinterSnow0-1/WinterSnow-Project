@@ -11,8 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: a52d1857eaf423d4aa8692c3915c2e16, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _ALPHATEST_ON
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -24,34 +23,19 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _AtlasTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _ColorAtlas:
-        m_Texture: {fileID: 2800000, guid: c4b27083d699ec84a8fe8b7424c6fcb4, type: 3}
+        m_Texture: {fileID: 2800000, guid: cf960af114befd54c81ceff618eb4037, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _NormalAtlas:
-        m_Texture: {fileID: 2800000, guid: 098242a3903c62c4bb86805e27fd1693, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _defaultAtlas:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats:
-    - _AlphaClip: 1
-    - _Cutoff: 0.37
-    - _PitchMax: 60
-    - _PitchMin: -20
-    - _PitchSteps: 8
-    - _UseNormal: 1
-    - _YawSteps: 8
-    - _xSteps: 8
-    - _ySteps: 8
-    m_Colors:
-    - _Pivot: {r: 0.5, g: 0.5, b: 0, a: 0}
-    - _Size: {r: 1, g: 1, b: 0, a: 0}
+    m_Floats: []
+    m_Colors: []
   m_BuildTextureStacks: []
