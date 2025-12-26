@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 091ef6bf39d878549b86b49dfbdfe8b9, type: 3}
+  m_Name: LookDevConfig
+  m_EditorClassIdentifier: 
+  datas:
+  - desc: SP
+    lightIntensity: 1
+    lightRotation: {x: 59, y: 12, z: 0}
+    lightColor: {r: 1, g: 1, b: 1, a: 1}
+    skyBoxMaterial: {fileID: 2100000, guid: b75cf1c0f07e0a94289a49fa173ac07c, type: 2}
+    volumeProfile: {fileID: 11400000, guid: c8b948a7f911b5046ae5c3e37e1e8bef, type: 2}
