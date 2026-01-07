@@ -17,6 +17,11 @@ float3 GetLighting(CustomSurfaceData surface, BRDFData brdf,GI gi)
         CustomLight light = GetDirectionalLight(i, surface, shadowData);
         color += circulateLighting(surface, brdf, light) * CustomDirectBDRF(surface, brdf, light) * light.attenuation;
     }
+    for (int j = 0; j < GetOtherLightCount(); j++) {
+        CustomLight light = GetOtherLight(j, surface, shadowData);
+        color += circulateLighting(surface, brdf, light) * CustomDirectBDRF(surface, brdf, light) * light.attenuation;
+    }
+    
     return color;
 }
 
