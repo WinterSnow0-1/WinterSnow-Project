@@ -104,7 +104,6 @@ Shader "Unlit/SampleImpostor"
                 ab = (ab + 1)/2 + 0.01f;
                 //return ab;
                 return floor(ab*16)*0.0625f;
-                return ab;
             }
             
 

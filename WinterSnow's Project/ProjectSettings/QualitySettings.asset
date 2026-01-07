@@ -131,7 +131,7 @@ QualitySettings:
     useLegacyDetailDistribution: 1
     vSyncCount: 1
     realtimeGICPUUsage: 25
-    lodBias: 2
+    lodBias: 4.93
     maximumLODLevel: 0
     enableLODCrossFade: 1
     streamingMipmapsActive: 0
@@ -145,7 +145,7 @@ QualitySettings:
     asyncUploadBufferSize: 16
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
-    customRenderPipeline: {fileID: 11400000, guid: 7b7fd9122c28c4d15b667c7040e3b3fd,
+    customRenderPipeline: {fileID: 11400000, guid: 6f73661b4cdb3164ea1124965dfebf63,
       type: 2}
     terrainQualityOverrides: 0
     terrainPixelError: 1

@@ -64,7 +64,7 @@ CustomSurfaceData GenSurfaceData(v2f input, float4 col)
     surface.position = input.posWS;
     surface.depth = -TransformWorldToView(input.posWS).z;
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
-    surface.vDir =  normalize(_WorldSpaceCameraPos - input.posWS);
+    surface.vDir = normalize(_WorldSpaceCameraPos - input.posWS);
     return surface;
 }
 
@@ -72,22 +72,24 @@ CustomSurfaceData GenSurfaceData(v2f input, float4 col)
 float4 LitPassFragment(v2f i) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(i);
+
+    ClipLOD(i.positionCS.xy, unity_LODFade.x);
     float4 col = GetBase(i.uv);
     CustomSurfaceData surface = GenSurfaceData(i, col);
-    
+
     #if defined(_PREMULTIPLY_ALPHA)
     BRDFData brdf = GetBRDF(surface, true);
     #else
     BRDFData brdf = GetBRDF(surface);
     #endif
-    
+
     GI gi;
     #if LIGHTMAP_ON
     gi = GetGI(i.lightMapUV,surface);
     #else
-    gi = GetGI(0,surface);
+    gi = GetGI(0, surface);
     #endif
-    float3 result = GetLighting(surface, brdf,gi);
+    float3 result = GetLighting(surface, brdf, gi);
     result += GetEmission(i.uv);
     return float4(result, surface.alpha);
 }
