@@ -7,6 +7,11 @@ float4x4 unity_WorldToObject;
 float4 unity_LODFade;
 real4 unity_WorldTransformParams;
 
+//记录光照各种信息，y通道记录了光的数量
+real4 unity_LightData;
+// 记录光照的下表，一共记录 8 个
+real4 unity_LightIndices[2];
+
 float4 unity_ProbesOcclusion;
 
 float4x4 unity_MatrixVP;

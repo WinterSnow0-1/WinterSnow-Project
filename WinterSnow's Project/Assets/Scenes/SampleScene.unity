@@ -533,7 +533,7 @@ MeshRenderer:
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 0.28950542
+  m_ScaleInLightmap: 1.5966699
   m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
@@ -1127,7 +1127,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 5970
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 2.6307e-41, y: 0, z: 0, w: -8.8555875e-38}
+  m_BoundingSphereOverride: {x: 1.02e-43, y: 6.9e-44, z: 1.1223e-41, w: NaN}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -2219,22 +2219,22 @@ LODGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1332066489}
   serializedVersion: 2
-  m_LocalReferencePoint: {x: 11.722457, y: 0, z: 0}
+  m_LocalReferencePoint: {x: 11.7325, y: 0, z: 0}
   m_Size: 1
-  m_FadeMode: 0
-  m_AnimateCrossFading: 0
+  m_FadeMode: 1
+  m_AnimateCrossFading: 1
   m_LastLODIsBillboard: 0
   m_LODs:
-  - screenRelativeHeight: 0.53099996
-    fadeTransitionWidth: 0
+  - screenRelativeHeight: 0.21562374
+    fadeTransitionWidth: 0.535
     renderers:
     - renderer: {fileID: 1301865436}
-  - screenRelativeHeight: 0.09747881
-    fadeTransitionWidth: 0
+  - screenRelativeHeight: 0.09700308
+    fadeTransitionWidth: 1
     renderers:
     - renderer: {fileID: 1840093227}
-  - screenRelativeHeight: 0.009806898
-    fadeTransitionWidth: 0
+  - screenRelativeHeight: 0.00003436987
+    fadeTransitionWidth: 1
     renderers:
     - renderer: {fileID: 298690947}
   m_Enabled: 1
@@ -2247,7 +2247,7 @@ Transform:
   m_GameObject: {fileID: 1332066489}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 22.976978, y: 9.186329, z: -5.031438}
+  m_LocalPosition: {x: 22.67, y: 9.186329, z: -5.031438}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3150,7 +3150,7 @@ MeshRenderer:
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 0.28950542
+  m_ScaleInLightmap: 1.7745824
   m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
@@ -3203,7 +3203,7 @@ Transform:
   m_GameObject: {fileID: 1840093226}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 11.678001, y: 0, z: 0}
+  m_LocalPosition: {x: 13.29, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

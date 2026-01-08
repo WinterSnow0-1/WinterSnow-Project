@@ -19,7 +19,7 @@ public partial class CameraRenderer
 
     Lighting lighting = new Lighting();
     
-    public void Render(ScriptableRenderContext context, Camera camera,bool useDynamicBatching,bool useGPUInstancing, ShadowSettings shadowSettings)
+    public void Render(ScriptableRenderContext context, Camera camera,bool useDynamicBatching,bool useGPUInstancing,bool useLightsPerObject, ShadowSettings shadowSettings)
     {
         this.context = context;
         this.camera = camera;
@@ -34,10 +34,10 @@ public partial class CameraRenderer
 
         buffer.BeginSample(SampleName);
         ExecuteBuffer();
-        lighting.Setup(context,cullingResults,shadowSettings);
+        lighting.Setup(context,cullingResults,shadowSettings, useLightsPerObject);
         buffer.EndSample(SampleName);
         setup();
-        DrawVisbleGeometry(useDynamicBatching, useGPUInstancing);
+        DrawVisbleGeometry(useDynamicBatching, useGPUInstancing,useLightsPerObject);
 
         /// 对于SRP中不支持的着色器，我们会单独处理。
         /// 不支持主要包括
@@ -66,9 +66,12 @@ public partial class CameraRenderer
     ///     3. FilteringSettings: 我们可以自定义渲染区间，进行特殊效果渲染。也可以控制LayerMask来单独绘制某个layer的特殊pass
     ///     <![CDATA[API:https://docs.unity3d.com/ScriptReference/Rendering.FilteringSettings.html]]>
     ///     4. PerObjectData 同时unity在setup阶段额外为每个物体准备何种数据，此时开启LIGHTMAP_ON关键字
+    ///     5. 针对局部多光源，我们可以将光影响哪些物体给标记出来 （ per-object light indices ） ，这样避免了逐像素去处理，减少开销；但是 对于大物体 来说可能就不适用。
     /// </summary>
-    void DrawVisbleGeometry(bool useDynamicBatching,bool useGPUInstancing)
+    void DrawVisbleGeometry (bool useDynamicBatching,bool useGPUInstancing, bool useLightsPerObject)
     {
+        //根据开关来确认是否使用LightIndices来逐物体判断，减小消耗
+        PerObjectData lightsPerObjectFlags = useLightsPerObject ? PerObjectData.LightData | PerObjectData.LightIndices : PerObjectData.None;
         var sortingSettings = new SortingSettings(camera)
         {
             criteria = SortingCriteria.CommonOpaque
@@ -79,8 +82,7 @@ public partial class CameraRenderer
             enableInstancing = useGPUInstancing,
             enableDynamicBatching = useDynamicBatching,
             perObjectData = PerObjectData.Lightmaps  |  PerObjectData.ShadowMask |  PerObjectData.OcclusionProbe | PerObjectData.LightProbe| PerObjectData.LightProbeProxyVolume |
-                            PerObjectData.OcclusionProbeProxyVolume 
-        };
+                            PerObjectData.OcclusionProbeProxyVolume | lightsPerObjectFlags };
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);

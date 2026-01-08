@@ -17,10 +17,19 @@ float3 GetLighting(CustomSurfaceData surface, BRDFData brdf,GI gi)
         CustomLight light = GetDirectionalLight(i, surface, shadowData);
         color += circulateLighting(surface, brdf, light) * CustomDirectBDRF(surface, brdf, light) * light.attenuation;
     }
-    for (int j = 0; j < GetOtherLightCount(); j++) {
-        CustomLight light = GetOtherLight(j, surface, shadowData);
-        color += circulateLighting(surface, brdf, light) * CustomDirectBDRF(surface, brdf, light) * light.attenuation;
-    }
+
+    #if defined(_LIGHTS_PER_OBJECT)
+        for (int j = 0;j < min(unity_LightData.y, 8); j++) {
+            int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
+            Light light = GetOtherLight(lightIndex, surfaceWS, shadowData);
+            color += GetLighting(surfaceWS, brdf, light);
+        }
+    #else
+        for (int j = 0; j < GetOtherLightCount(); j++) {
+            CustomLight light = GetOtherLight(j, surface, shadowData);
+            color += circulateLighting(surface, brdf, light) * CustomDirectBDRF(surface, brdf, light) * light.attenuation;
+        }
+	#endif
     
     return color;
 }

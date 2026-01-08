@@ -1,32 +1,36 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-public class CustomRenderPipeline : RenderPipeline
+
+public partial class CustomRenderPipeline : RenderPipeline
 {
     readonly CameraRenderer renderer = new CameraRenderer();
-    bool useDynamicBatching, useGPUInstancing;
+    bool useDynamicBatching, useGPUInstancing,useLightsPerObject;
     ShadowSettings shadowSettings;
-    public CustomRenderPipeline(bool useDynamicBatching,bool useGPUInstancing, bool useSRPBatcher, ShadowSettings shadowSettings)
+    public CustomRenderPipeline(bool useDynamicBatching,bool useGPUInstancing, bool useSRPBatcher,bool useLightsPerObject, ShadowSettings shadowSettings)
     {
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;
         this.useDynamicBatching = useDynamicBatching;
         this.useGPUInstancing = useGPUInstancing;
         this.shadowSettings = shadowSettings;
+        this.useLightsPerObject = useLightsPerObject;
+        InitializeForEditor();
     }
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
         foreach (Camera camera in cameras)
         {
             //context.SetupCameraProperties(camera);
-            /// 注意，避免直接调用camera.Render();
-            /// unity官方希望所有渲染都只在Render 入口走一次。
-            /// 因此在SPR管线中，其回调当前RenderPipeline的render，形成死循环。该代码写入C++底层
-            /// SRP 下的正确模式是：
-            /// 1.只用 ScriptableRenderContext + CommandBuffer 渲染
-            /// 2.Camera 只是“数据”（视角、投影矩阵等），
-            /// 3.不再用 camera.Render() 这种旧式“一键帮你画完”的 API。
-            renderer.Render(context, camera,useDynamicBatching, useGPUInstancing, shadowSettings);
+            // 注意，避免直接调用camera.Render();
+            // unity官方希望所有渲染都只在Render 入口走一次。
+            // 因此在SPR管线中，其回调当前RenderPipeline的render，形成死循环。该代码写入C++底层
+            // SRP 下的正确模式是：
+            // 1.只用 ScriptableRenderContext + CommandBuffer 渲染
+            // 2.Camera 只是“数据”（视角、投影矩阵等），
+            // 3.不再用 camera.Render() 这种旧式“一键帮你画完”的 API。
+            renderer.Render(context, camera,useDynamicBatching, useGPUInstancing, useLightsPerObject,shadowSettings);
         }
     }
 
 }
+

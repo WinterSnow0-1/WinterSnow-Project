@@ -57,12 +57,13 @@ public class Shadows
 
     readonly ShadowedDirectionalLight[] shadowedDirectionalLights = new ShadowedDirectionalLight[maxShadowedDirectionalLightCount];
 
+    
+    /// GetShadowCasterBounds bool 如果光源影响了场景中至少一个阴影投射对象，则为 true。https://docs.unity.cn/cn/2019.4/ScriptReference/Rendering.CullingResults.GetShadowCasterBounds.html
+    /// 函数所做：1. 找到当前灯光所照到的物体上的，cast shadow 不等于 off 的
+    ///         2. 挑出可能把阴影投影到当前摄像机可见区域的物体
+    ///         3. 求出这些物体的 世界空间下的  轴对齐包围盒  如果没有，则返回false
     public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
-        /// GetShadowCasterBounds bool 如果光源影响了场景中至少一个阴影投射对象，则为 true。https://docs.unity.cn/cn/2019.4/ScriptReference/Rendering.CullingResults.GetShadowCasterBounds.html
-        /// 函数所做：1. 找到当前灯光所照到的物体上的，cast shadow 不等于 off 的
-        ///         2. 挑出可能把阴影投影到当前摄像机可见区域的物体
-        ///         3. 求出这些物体的 世界空间下的  轴对齐包围盒  如果没有，则返回false
         if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount && light.shadows != LightShadows.None && light.shadowStrength > 0f)
         {
             float maskChannel = -1;
@@ -86,6 +87,23 @@ public class Shadows
             return new Vector4(light.shadowStrength, shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++, light.shadowNormalBias,maskChannel);
         }
         return new Vector4(0,0,0,-1);
+    }
+
+    /// 对于区域光，我们自然可以像平行光一样使用通道来记录不同灯的阴影
+    /// 但是对于多盏灯，尤其是照明区域不同的灯，我们有可能会将上一盏灯的阴影信息覆盖
+    /// 因此我们会舍弃 不重要（重要程度低） 的灯，直至通道数可以容纳（4盏）
+    public Vector4 ReserveOthreShadows(Light light, int visibleLightIndex)
+    {
+        if (light.shadows != LightShadows.None && light.shadowStrength > 0f)
+        {
+            LightBakingOutput lightBaking = light.bakingOutput;
+            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+            {
+                useShadowMask = true;
+                return new Vector4(light.shadowStrength, 0f, 0f, lightBaking.occlusionMaskChannel);
+            }
+        }
+        return new Vector4(0f, 0f, 0f, -1f);
     }
 
     bool useShadowMask;
