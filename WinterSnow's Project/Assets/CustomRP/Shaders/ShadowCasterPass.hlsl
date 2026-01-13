@@ -17,6 +17,8 @@ struct Varyings
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
+bool _ShadowPancaking;
+
 Varyings ShadowCasterPassVertex(Attributes input)
 {
     Varyings output;
@@ -25,18 +27,21 @@ Varyings ShadowCasterPassVertex(Attributes input)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
     output.positionCS = TransformWorldToHClip(positionWS);
 
-    float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
+    //float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
     //float4 baseST =  _BaseMap_ST;
-    output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    //output.baseUV = input.baseUV * baseST.xy + baseST.zw;
 
     /// 当物体离投影相加过近，甚至超过近平面时，需要进行下面判断
     /// 但是此时不适用于物体横跨多个投影相机，此时近平面裁剪现象仍会出现
+    /// 
+	if (_ShadowPancaking) {
     #if UNITY_REVERSED_Z
     output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
     #else
     output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
     #endif
-    return output;
+	}
+    output.baseUV = TransformBaseUV(input.baseUV);
     return output;
 }
 

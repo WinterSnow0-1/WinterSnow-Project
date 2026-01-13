@@ -20,6 +20,7 @@ Shader "URP/CustomLit"
         [Enum(Off,0,On,1)] _ZWrite("Z Write",float) = 1
         _Cutoff ("裁剪范围",Range(0,1)) = 0.5
         [Toggle(_CLIPPING)] _Clipping ("开启裁剪",float) = 0
+        [Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows("Receive Shadows", Float) = 1
         [KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
     }
     SubShader
@@ -34,6 +35,7 @@ Shader "URP/CustomLit"
         #include "../ShaderLibrary/Common.hlsl"
         #include "LitInput.hlsl"
         #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
+        #pragma multi_compile _ _OTHER_PCF3 _OTHER_PCF5 _OTHER_PCF7
         #pragma multi_compile _ LOD_FADE_CROSSFADE
         ENDHLSL
 
@@ -64,6 +66,7 @@ Shader "URP/CustomLit"
             HLSLPROGRAM
             #pragma target 3.5
             #pragma shader_feature _CLIPPING
+            #pragma shader_feature _RECEIVE_SHADOWS
             #pragma shader_feature _PREMULTIPLY_ALPHA
             #pragma multi_compile _ _SHADOW_MASK_DISTANCE _SHADOW_MASK_ALWAYS
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
@@ -71,6 +74,7 @@ Shader "URP/CustomLit"
             #pragma multi_compile_instancing
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _LIGHTS_PER_OBJECT
+            
             #include "CustomLitPass.hlsl"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment

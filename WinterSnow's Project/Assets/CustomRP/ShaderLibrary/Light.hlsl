@@ -5,6 +5,10 @@
 #define MAX_DIRECTIONAL_LIGHT_COUNT 4
 #define MAX_OTHER_LIGHT_COUNT 64
 
+#ifndef CUSTOM_SHADOWS_INCLUDED
+#include "Assets/CustomRP/ShaderLibrary/Shadows.hlsl"
+#endif
+
 struct CustomLight
 {
     float3 direction;
@@ -59,20 +63,30 @@ CustomLight GetDirectionalLight(int index, CustomSurfaceData surfaceWS, CustomSh
 OtherShadowData GetOtherShadowData (int lightIndex) {
     OtherShadowData data;
     data.strength = _OtherLightShadowData[lightIndex].x;
+	data.tileIndex = _OtherLightShadowData[lightIndex].y;
     data.shadowMaskChannel = _OtherLightShadowData[lightIndex].w;
+    data.isPoint = _OtherLightShadowData[lightIndex].z == 1.0;
+    data.lightPositionWS = 0.0;
+    data.lightDirectionWS = 0.0;
+    data.spotDirectionWS = 0.0;
     return data;
 }
 
 CustomLight GetOtherLight (int index, CustomSurfaceData surfaceWS, CustomShadowData shadowData) {
     CustomLight light;
-	OtherShadowData otherShadowData = GetOtherShadowData(index);
     light.color = _OtherLightColors[index].rgb;
     float3 ray = _OtherLightPositions[index].xyz - surfaceWS.position;
+	float3 position = _OtherLightPositions[index].xyz;
     light.direction = normalize(ray);
     float distanceSqr = max(dot(ray, ray), 0.00001);
-    float rangeAttenuation =  (1 - Square(distanceSqr * _OtherLightPositions[index].w));
+    float rangeAttenuation =  saturate(1 - Square(distanceSqr * _OtherLightPositions[index].w));
     float4 spotAngles = _OtherLightSpotAngles[index];
-    float spotAttenuation = saturate(dot(_OtherLightDirections[index].xyz, light.direction* spotAngles.x + spotAngles.y));
+	float3 spotDirection = _OtherLightDirections[index].xyz;
+    float spotAttenuation = Square(saturate(dot(spotDirection.xyz, light.direction)* spotAngles.x + spotAngles.y));
+	OtherShadowData otherShadowData = GetOtherShadowData(index);
+    otherShadowData.lightPositionWS = position;
+	otherShadowData.lightDirectionWS = light.direction;
+    otherShadowData.spotDirectionWS = spotDirection;
     light.attenuation = GetOtherShadowAttenuation(otherShadowData, shadowData, surfaceWS) * spotAttenuation * rangeAttenuation / distanceSqr;
     return light;
 }

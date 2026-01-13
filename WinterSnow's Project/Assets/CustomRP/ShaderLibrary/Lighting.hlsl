@@ -20,14 +20,15 @@ float3 GetLighting(CustomSurfaceData surface, BRDFData brdf,GI gi)
 
     #if defined(_LIGHTS_PER_OBJECT)
         for (int j = 0;j < min(unity_LightData.y, 8); j++) {
-            int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
-            Light light = GetOtherLight(lightIndex, surfaceWS, shadowData);
-            color += GetLighting(surfaceWS, brdf, light);
+            int lightIndex = unity_LightIndices[j / 4][j % 4];
+            CustomLight light = GetOtherLight(lightIndex, surface, shadowData);
+            color += circulateLighting(surface, brdf, light) * CustomDirectBDRF(surface, brdf, light) * light.attenuation;
         }
     #else
         for (int j = 0; j < GetOtherLightCount(); j++) {
             CustomLight light = GetOtherLight(j, surface, shadowData);
             color += circulateLighting(surface, brdf, light) * CustomDirectBDRF(surface, brdf, light) * light.attenuation;
+            
         }
 	#endif
     
