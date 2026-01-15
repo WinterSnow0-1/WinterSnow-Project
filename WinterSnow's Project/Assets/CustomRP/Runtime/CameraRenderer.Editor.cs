@@ -43,6 +43,10 @@ public partial class CameraRenderer
     
     partial void DrawGizmos();
     
+    partial void DrawGizmosBeforeFX ();
+
+    partial void DrawGizmosAfterFX ();
+    
 #if UNITY_EDITOR
     /// <summary>
     /// 同时绘制后处理前后的 gizmos ;
@@ -56,6 +60,20 @@ public partial class CameraRenderer
             context.DrawGizmos(camera,GizmoSubset.PostImageEffects);
         }
     }
+    
+    partial void DrawGizmosBeforeFX () {
+        if (Handles.ShouldRenderGizmos()) {
+            context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
+            //context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
+        }
+    }
+
+    partial void DrawGizmosAfterFX () {
+        if (Handles.ShouldRenderGizmos()) {
+            context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
+        }
+    }
+    
 #endif
 
 

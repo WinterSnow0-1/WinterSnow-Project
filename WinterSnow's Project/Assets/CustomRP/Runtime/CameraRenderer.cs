@@ -17,15 +17,19 @@ public partial class CameraRenderer
     static readonly ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
     static readonly ShaderTagId litShaderTagId = new ShaderTagId("CustomLit");
 
-    Lighting lighting = new Lighting();
+    readonly Lighting lighting = new Lighting();
+
+    readonly PostFXStack postFXStack = new PostFXStack();
+
+    static readonly int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     
-    public void Render(ScriptableRenderContext context, Camera camera,bool useDynamicBatching,bool useGPUInstancing,bool useLightsPerObject, ShadowSettings shadowSettings)
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings)
     {
         this.context = context;
         this.camera = camera;
-        
+
         PrepareBuffer();
-        
+
         //此方法增添了几何体，因此需要在Cull前增加，来进行剔除处理
         PrepareForSceneWindow();
 
@@ -34,11 +38,15 @@ public partial class CameraRenderer
 
         buffer.BeginSample(SampleName);
         ExecuteBuffer();
-        lighting.Setup(context,cullingResults,shadowSettings, useLightsPerObject);
+        lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
+        postFXStack.Setup(context, camera, postFXSettings);
         buffer.EndSample(SampleName);
         setup();
-        DrawVisbleGeometry(useDynamicBatching, useGPUInstancing,useLightsPerObject);
+        DrawVisbleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
 
+        buffer.Blit(camera.targetTexture,frameBufferId);
+        context.ExecuteCommandBuffer(buffer);
+        buffer.Clear();
         /// 对于SRP中不支持的着色器，我们会单独处理。
         /// 不支持主要包括
         /// 1. shaderTagId 不在 SRP处理中
@@ -48,10 +56,14 @@ public partial class CameraRenderer
         ///     c. 依赖Built - in 的标准， #pragma surface surf Standard fullforwardshadows
         ///     e. 使用GrabPass
         DrawUnsupportedShaders();
-        
-        DrawGizmos();
 
-        lighting.Cleanup();
+        DrawGizmosBeforeFX();
+        if (postFXStack.IsActive) {
+            postFXStack.Render(frameBufferId);
+        }
+        DrawGizmosAfterFX();
+        Cleanup();
+        //lighting.Cleanup();
         Submit();
     }
 
@@ -68,7 +80,7 @@ public partial class CameraRenderer
     ///     4. PerObjectData 同时unity在setup阶段额外为每个物体准备何种数据，此时开启LIGHTMAP_ON关键字
     ///     5. 针对局部多光源，我们可以将光影响哪些物体给标记出来 （ per-object light indices ） ，这样避免了逐像素去处理，减少开销；但是 对于大物体 来说可能就不适用。
     /// </summary>
-    void DrawVisbleGeometry (bool useDynamicBatching,bool useGPUInstancing, bool useLightsPerObject)
+    void DrawVisbleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject)
     {
         //根据开关来确认是否使用LightIndices来逐物体判断，减小消耗
         PerObjectData lightsPerObjectFlags = useLightsPerObject ? PerObjectData.LightData | PerObjectData.LightIndices : PerObjectData.None;
@@ -81,9 +93,10 @@ public partial class CameraRenderer
         {
             enableInstancing = useGPUInstancing,
             enableDynamicBatching = useDynamicBatching,
-            perObjectData = PerObjectData.Lightmaps  |  PerObjectData.ShadowMask |  PerObjectData.OcclusionProbe | PerObjectData.LightProbe| PerObjectData.LightProbeProxyVolume |
-                            PerObjectData.OcclusionProbeProxyVolume | lightsPerObjectFlags };
-        drawingSettings.SetShaderPassName(1,litShaderTagId);
+            perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | PerObjectData.OcclusionProbe | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume |
+                            PerObjectData.OcclusionProbeProxyVolume | lightsPerObjectFlags
+        };
+        drawingSettings.SetShaderPassName(1, litShaderTagId);
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
 
@@ -97,15 +110,26 @@ public partial class CameraRenderer
 
     }
 
-    
+
 
     void setup()
     {
         buffer.BeginSample(SampleName);
         context.SetupCameraProperties(camera);
         CameraClearFlags flags = camera.clearFlags;
-        buffer.ClearRenderTarget(flags<= CameraClearFlags.Depth, flags == CameraClearFlags.Color,
-            flags == CameraClearFlags.Color? camera.backgroundColor.linear : Color.black);
+
+        if (postFXStack.IsActive)
+        {		
+            if (flags > CameraClearFlags.Color) {
+                flags = CameraClearFlags.Color;
+            }
+            buffer.GetTemporaryRT(frameBufferId, camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Bilinear, RenderTextureFormat.Default);
+            
+            buffer.SetRenderTarget(frameBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        }
+
+        buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags == CameraClearFlags.Color,
+            flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.black);
         ExecuteBuffer();
         context.SetupCameraProperties(camera);
     }
@@ -124,7 +148,13 @@ public partial class CameraRenderer
         context.ExecuteCommandBuffer(buffer);
         buffer.Clear();
     }
-
+    
+    void Cleanup () {
+        lighting.Cleanup();
+        if (postFXStack.IsActive) {
+            buffer.ReleaseTemporaryRT(frameBufferId);
+        }
+    }
 
     /// 裁剪函数
     /// 说明：
@@ -137,7 +167,7 @@ public partial class CameraRenderer
         ScriptableCullingParameters cullingParameters;
         if (camera.TryGetCullingParameters(out cullingParameters))
         {
-            cullingParameters.shadowDistance = Mathf.Min(shadowMaxDistance,camera.farClipPlane);
+            cullingParameters.shadowDistance = Mathf.Min(shadowMaxDistance, camera.farClipPlane);
             cullingResults = context.Cull(ref cullingParameters);
             return true;
         }
