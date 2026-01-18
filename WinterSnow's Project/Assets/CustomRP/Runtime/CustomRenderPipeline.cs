@@ -4,11 +4,12 @@ using UnityEngine.Rendering;
 public partial class CustomRenderPipeline : RenderPipeline
 {
     readonly CameraRenderer renderer = new CameraRenderer();
-    bool useDynamicBatching, useGPUInstancing,useLightsPerObject;
+    bool allowHDR,useDynamicBatching, useGPUInstancing,useLightsPerObject;
     ShadowSettings shadowSettings;
     PostFXSettings postFXSettings;
-    public CustomRenderPipeline(bool useDynamicBatching,bool useGPUInstancing, bool useSRPBatcher,bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings)
+    public CustomRenderPipeline(bool allowHDR, bool useDynamicBatching,bool useGPUInstancing, bool useSRPBatcher,bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings)
     {
+        this.allowHDR = allowHDR;
         this.postFXSettings = postFXSettings;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;
@@ -30,7 +31,7 @@ public partial class CustomRenderPipeline : RenderPipeline
             // 1.只用 ScriptableRenderContext + CommandBuffer 渲染
             // 2.Camera 只是“数据”（视角、投影矩阵等），
             // 3.不再用 camera.Render() 这种旧式“一键帮你画完”的 API。
-            renderer.Render(context, camera,useDynamicBatching, useGPUInstancing, useLightsPerObject,shadowSettings, postFXSettings);
+            renderer.Render(context, camera, allowHDR, useDynamicBatching, useGPUInstancing, useLightsPerObject,shadowSettings, postFXSettings);
         }
     }
 
