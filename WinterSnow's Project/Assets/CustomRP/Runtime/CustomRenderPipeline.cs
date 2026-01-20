@@ -7,8 +7,12 @@ public partial class CustomRenderPipeline : RenderPipeline
     bool allowHDR,useDynamicBatching, useGPUInstancing,useLightsPerObject;
     ShadowSettings shadowSettings;
     PostFXSettings postFXSettings;
-    public CustomRenderPipeline(bool allowHDR, bool useDynamicBatching,bool useGPUInstancing, bool useSRPBatcher,bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings)
+    
+    int colorLUTResolution;
+    
+    public CustomRenderPipeline(bool allowHDR, bool useDynamicBatching,bool useGPUInstancing, bool useSRPBatcher,bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
     {
+        this.colorLUTResolution = colorLUTResolution;
         this.allowHDR = allowHDR;
         this.postFXSettings = postFXSettings;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
@@ -31,7 +35,7 @@ public partial class CustomRenderPipeline : RenderPipeline
             // 1.只用 ScriptableRenderContext + CommandBuffer 渲染
             // 2.Camera 只是“数据”（视角、投影矩阵等），
             // 3.不再用 camera.Render() 这种旧式“一键帮你画完”的 API。
-            renderer.Render(context, camera, allowHDR, useDynamicBatching, useGPUInstancing, useLightsPerObject,shadowSettings, postFXSettings);
+            renderer.Render(context, camera, allowHDR, useDynamicBatching, useGPUInstancing, useLightsPerObject,shadowSettings, postFXSettings,colorLUTResolution);
         }
     }
 

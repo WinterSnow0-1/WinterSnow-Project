@@ -81,6 +81,16 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 		}
 		
 		Pass {
+			Name "ToneMapping-None"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment ToneMappingNonePassFragment
+			ENDHLSL
+		}
+
+		Pass {
 			Name "ToneMapping-ASE"
 			
 			HLSLPROGRAM
@@ -109,6 +119,16 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 				#pragma fragment ToneMappingReinhardPassFragment
 			ENDHLSL
 		}
+
+		Pass {
+			Name "Final"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment FinalPassFragment
+			ENDHLSL
+}
 
 		Pass {
 			Name "Copy"

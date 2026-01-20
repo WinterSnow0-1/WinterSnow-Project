@@ -31,4 +31,5 @@ MonoBehaviour:
   useGPUInstancing: 1
   useSRPBatching: 1
   useLightsPerObject: 1
+  allowHDR: 1
   postFXSettings: {fileID: 11400000, guid: a8c41a7e5cd8c2842802943bc1a72de4, type: 2}

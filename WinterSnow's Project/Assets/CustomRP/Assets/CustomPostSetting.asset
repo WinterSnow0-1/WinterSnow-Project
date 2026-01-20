@@ -13,10 +13,15 @@ MonoBehaviour:
   m_Name: CustomPostSetting
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: acf1a61e6989c7b4f9c803be2acb9757, type: 3}
+  toneMapping:
+    mode: -1
   bloom:
-    maxIterations: 2
+    mode: 1
+    scatter: 0.445
+    maxIterations: 6
     downscaleLimit: 1
     bicubicUpsampling: 0
-    threshold: 0.9
-    thresholdKnee: 0.647
-    intensity: 5.05
+    threshold: 0.4
+    thresholdKnee: 1
+    intensity: 4.55
+    fadeFireflies: 0
